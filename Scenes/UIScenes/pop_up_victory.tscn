@@ -18,12 +18,12 @@ texture_pressed = ExtResource( 2 )
 expand = true
 
 [node name="Label" type="Label" parent="MainMenu"]
-margin_left = 26.0
+margin_left = 17.0
 margin_top = 11.0
-margin_right = 251.0
+margin_right = 246.0
 margin_bottom = 70.0
 custom_fonts/font = ExtResource( 3 )
-text = "MainMenu"
+text = "Main Menu"
 
 [node name="NextLevel" type="TextureButton" parent="."]
 margin_left = 541.0
@@ -35,12 +35,12 @@ texture_pressed = ExtResource( 2 )
 expand = true
 
 [node name="Label" type="Label" parent="NextLevel"]
-margin_left = 10.0
-margin_top = 9.0
-margin_right = 265.0
-margin_bottom = 62.0
+margin_left = 5.0
+margin_top = 10.0
+margin_right = 262.0
+margin_bottom = 63.0
 custom_fonts/font = ExtResource( 3 )
-text = "NextLevel"
+text = "Next Level"
 
 [node name="Label" type="Label" parent="."]
 margin_left = 591.0
@@ -48,5 +48,5 @@ margin_top = 206.0
 margin_right = 761.0
 margin_bottom = 272.0
 custom_fonts/font = ExtResource( 3 )
-text = "VITORY!"
+text = "VICTORY!"
 uppercase = true
