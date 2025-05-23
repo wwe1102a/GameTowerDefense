@@ -182,28 +182,29 @@ default_color = Color( 0.4, 0.501961, 0.596078, 1 )
 curve = SubResource( 4 )
 
 [node name="BlueTank" parent="TowerExclusion/Path2DAstar" instance=ExtResource( 11 )]
+position = Vector2( 92, -112 )
 
 [node name="Path2DDijk" type="Path2D" parent="TowerExclusion"]
 curve = SubResource( 4 )
 
 [node name="BlueTank" parent="TowerExclusion/Path2DDijk" instance=ExtResource( 11 )]
+position = Vector2( -126, -86 )
 script = ExtResource( 12 )
 
-[node name="IconAstar" type="Sprite" parent="TowerExclusion"]
-position = Vector2( 0.5, -4.49997 )
-scale = Vector2( 0.119141, 0.107422 )
+[node name="MarkerAstar" type="Sprite" parent="TowerExclusion"]
+position = Vector2( -109, -181 )
+scale = Vector2( 0.123047, 0.117188 )
 texture = ExtResource( 13 )
 
-[node name="IconDijk" type="Sprite" parent="TowerExclusion"]
-position = Vector2( -1.5, -3.5 )
-scale = Vector2( 0.111328, 0.111328 )
+[node name="MarkerDijk" type="Sprite" parent="TowerExclusion"]
+position = Vector2( -211, -169 )
+scale = Vector2( 0.130859, 0.132812 )
 texture = ExtResource( 14 )
 
 [node name="Obstacles" type="TileMap" parent="."]
 format = 1
 
 [node name="Path" type="Path2D" parent="."]
-visible = false
 curve = SubResource( 3 )
 
 [node name="Turrets" type="Node2D" parent="."]

@@ -1,15 +1,18 @@
 extends TileMap
 
+
 onready var walkable_tile_id = 0
 
 onready var path2d_astar = $Path2DAstar
 onready var line2d_astar = $PathLineAstar
 onready var path2d_dijkstra = $Path2DDijk
 onready var line2d_dijkstra = $PathLineDijkstra
+onready var marker_astar = $MarkerAstar
+onready var marker_dijk = $MarkerDijk
 
 var inf = 1000000
 
-var point_ids = {} # cell(Vector2) -> true (walkable)
+var point_ids = {} 
 var g_score = {}
 var f_score = {}
 
@@ -21,7 +24,7 @@ var path_dijkstra = []
 
 
 onready var timer = Timer.new()
-var change_interval = 5.0
+var change_interval = 6.0
 var alternate_tile_id = 3
 var changing_cells = []
 
@@ -81,12 +84,8 @@ func heuristic(a, b):
 
 
 func compare_f_score(a, b):
-	var fa = inf
-	if f_score.has(a):
-		fa = f_score[a]
-	var fb = inf
-	if f_score.has(b):
-		fb = f_score[b]
+	var fa = f_score.get(a, inf)
+	var fb = f_score.get(b, inf)
 	return fa < fb
 
 # --- A* ---
@@ -108,10 +107,11 @@ func start_astar_visual(start_cell, end_cell):
 	var came_from = {}
 	g_score.clear()
 	f_score.clear()
-
 	open_set.append(start_cell)
 	g_score[start_cell] = 0
 	f_score[start_cell] = heuristic(start_cell, end_cell)
+
+
 
 	call_deferred("_astar_step", open_set, came_from, start_cell, end_cell)
 
@@ -127,6 +127,11 @@ func _astar_step(open_set, came_from, start_cell, end_cell):
 
 		if current != start_cell and current != end_cell:
 			astar_explored_points.append(current)
+
+			# ย้าย marker ตามจุดที่สำรวจ
+			marker_astar.position = map_to_world(current) + cell_size / 2
+			marker_astar.visible = true
+
 			update()  
 			yield(get_tree().create_timer(0.1), "timeout")
 
@@ -152,20 +157,28 @@ func _astar_step(open_set, came_from, start_cell, end_cell):
 	while came_from.has(cur):
 		cell_path.insert(0, cur)
 		cur = came_from[cur]
-
+	
 	draw_astar_path(cell_path)
 
 func draw_astar_path(cell_path):
-	path_astar.clear()  # นี่คือ array ของตำแหน่ง ใช้ clear ได้
-	line2d_astar.clear_points()  # ต้องล้างที่ Line2D เท่านั้น
-
+	path_astar.clear()
+	line2d_astar.clear_points()
+	path2d_astar.curve.clear_points()
+	
+	
+	
+	# แปลงทุกเซลล์ใน path เป็น world position
 	for cell in cell_path:
-		var pos = map_to_world(cell) + cell_size / 2
-		path_astar.append(pos)
-		line2d_astar.add_point(to_local(pos))
-
-	line2d_astar.width = 1
-	line2d_astar.default_color = Color.red
+		var world_pos = map_to_world(cell) + cell_size / 2
+		
+		
+		path_astar.append(world_pos)
+		line2d_astar.add_point(world_pos)  # ใช้ world_pos โดยตรง
+		path2d_astar.curve.add_point(world_pos)  # ใช้ world_pos โดยตรง
+	
+	line2d_astar.width = 2  # ทำให้เส้นหนาขึ้นเพื่อสังเกตง่าย
+	line2d_astar.default_color = Color(1, 0, 0, 0.8)  # สีแดงเข้ม
+	
 
 
 
@@ -220,6 +233,11 @@ func _dijkstra_step_search(start_cell, end_cell, came_from, cost_so_far, frontie
 			dijkstra_explored_points.append(current)
 			update()  # รีเฟรช _draw เพื่อวาดวงกลม
 			yield(get_tree().create_timer(0.1), "timeout")
+			
+			# ย้าย MarkerDijk ตามจุดที่สำรวจ
+			marker_dijk.position = map_to_world(current) + cell_size / 2
+			marker_dijk.visible = true
+			
 
 		if current == end_cell:
 			break
@@ -257,7 +275,7 @@ func draw_dijkstra_path(came_from, end_cell):
 # --- _draw() วาดวงกลมจุดที่สำรวจ ---
 
 func _draw():
-	var radius = cell_size.x * 1
+	var radius = cell_size.x * 0.1
 	for cell in astar_explored_points:
 		var pos = map_to_world(cell) + cell_size / 2
 		draw_circle(to_local(pos), radius, Color(1, 0, 0, 0.7))  
@@ -271,4 +289,3 @@ func block_cell(cell):
 	if point_ids.has(cell):
 		point_ids.erase(cell)
 		blocked_points.append(cell)
-
