@@ -1,7 +1,5 @@
 extends PathFollow2D
 
-
-
 var speed = 100
 var maxhp = 50
 var hp = 50
@@ -14,6 +12,7 @@ var projectile_impact = preload("res://Scenes/SupportScenes/ProjectileImpact.tsc
 func _ready():
 	health_bar.max_value = maxhp
 	health_bar.value = hp
+	update_health_bar_color()
 
 func _physics_process(delta):
 	if not is_dead:
@@ -26,10 +25,24 @@ func on_hit(damage):
 	impact()
 	hp -= damage
 	health_bar.value = hp
-	
+	update_health_bar_color()
+
 	if hp <= 0:
 		is_dead = true
 		on_destroy()
+
+func update_health_bar_color():
+	var percent = float(hp) / maxhp
+	var style = StyleBoxFlat.new()
+
+	if percent > 0.6:
+		style.bg_color = Color.green  
+	elif percent > 0.3:
+		style.bg_color = Color.yellow  
+	else:
+		style.bg_color = Color.red  
+	
+	health_bar.add_stylebox_override("fg", style)
 
 func impact():
 	randomize()

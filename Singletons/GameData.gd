@@ -40,14 +40,14 @@ func subtract_money(amount):
 
 
 
-var enemywaveLV1 = 2
+var enemywaveLV1 = 0
 var enemywaveLV2 = 3
 var enemywaveLV3 = 4
 
 
 
 signal enemy_changed(new_enemy)
-var enemies_destroy = 0
+var enemies_destroy = 1
 
 func enemy_changed(amount) :
 	enemies_destroy += amount

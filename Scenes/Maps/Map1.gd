@@ -1,7 +1,7 @@
 extends Node2D
 
 const ROAD_TILE_ID = 0 
-const OBSTACLE_TILE_ID = 1  
+const OBSTACLE_TILE_ID = 6  
 
 onready var road_tilemap = $TowerExclusion
 onready var obstacle_tilemap = $Obstacles
