@@ -200,7 +200,6 @@ position = Vector2( 92, -112 )
 script = null
 
 [node name="Path2DDijk" type="Path2D" parent="TowerExclusion"]
-visible = false
 curve = SubResource( 4 )
 
 [node name="BlueTank" parent="TowerExclusion/Path2DDijk" instance=ExtResource( 11 )]

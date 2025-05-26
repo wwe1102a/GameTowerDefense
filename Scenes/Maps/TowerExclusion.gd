@@ -41,7 +41,8 @@ var dijkstra_start_time = 0
 var dijkstra_end_time = 0
 
 var block_round = 0
-var tanks_per_round = 3
+var blocked_3 = false
+var blocked_6 = false
 var has_triggered_block = false
 
 var cells_to_block_rounds = [
@@ -55,17 +56,28 @@ func _ready():
 	start_dijkstra_step_search(Vector2(-1, 9), Vector2(21, 1))
 
 func _process(delta):
-	tank_destroyed_count = GameData.enemies_destroy
+	var destroyed = GameData.enemies_destroy
 
-	if block_round >= cells_to_block_rounds.size():
-		set_process(false)    # ปิด process เลย
-		return
+	# บล็อคช่องแรกเมื่อครบ 3 คัน
+	if destroyed >= 3 and not blocked_3:
+		blocked_3 = true
+		var cells_to_block = cells_to_block_rounds[0]
+		for cell in cells_to_block:
+			if get_cellv(cell) == walkable_tile_id:
+				set_cellv(cell, alternate_tile_id)
+				block_cell(cell)
+			else:
+				print("Cell ", cell, " already blocked or not walkable.")
+		# รีเซ็ตและคำนวณเส้นทางใหม่
+		initialize_astar()
+		start_astar_visual(Vector2(-1, 9), Vector2(21, 1))
+		initialize_dijkstra()
+		start_dijkstra_step_search(Vector2(-1, 9), Vector2(21, 1))
 
-	if tank_destroyed_count >= tanks_per_round * (block_round + 1) and not has_triggered_block:
-		has_triggered_block = true
-		print("Tank destroyed count reached round ", block_round + 1, ", blocking tiles.")
-
-		var cells_to_block = cells_to_block_rounds[block_round]
+	# บล็อคช่องสองเมื่อครบ 6 คัน
+	if destroyed >= 6 and not blocked_6:
+		blocked_6 = true
+		var cells_to_block = cells_to_block_rounds[1]
 		for cell in cells_to_block:
 			if get_cellv(cell) == walkable_tile_id:
 				set_cellv(cell, alternate_tile_id)
@@ -73,21 +85,14 @@ func _process(delta):
 			else:
 				print("Cell ", cell, " already blocked or not walkable.")
 
-		block_round += 1
-		has_triggered_block = false   # Reset สำหรับรอบถัดไป
 
 		# รีเซ็ตและคำนวณเส้นทางใหม่
 		initialize_astar()
 		start_astar_visual(Vector2(-1, 9), Vector2(21, 1))
 		initialize_dijkstra()
 		start_dijkstra_step_search(Vector2(-1, 9), Vector2(21, 1))
+		
 
-		# เพิ่มรอบการบล็อคสำหรับครั้งถัดไป
-		block_round += 1
-
-	# รีเซ็ต trigger เมื่อตัวนับถังยังไม่ถึงจำนวนในรอบถัดไป
-	if tank_destroyed_count < tanks_per_round * (block_round + 1):
-		has_triggered_block = false
 
 func build_point_map():
 	point_ids.clear()

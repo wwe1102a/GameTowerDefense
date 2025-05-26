@@ -8,7 +8,10 @@ var build_location
 var build_type
 
 var current_wave = 1
-var enemies_in_wave = GameData.enemywaveLV1
+var enemies_in_waveA = GameData.enemywaveALV1
+var enemies_in_waveD = GameData.enemywaveDLV1
+var enemies_in_wave = enemies_in_waveA + enemies_in_waveD
+
 
 var popup_scene = preload("res://Scenes/UIScenes/Pop_up_Menu.tscn")  # เปลี่ยนเส้นทางให้ถูกต้อง
 var popup_instance  # ตัวแปรสำหรับเก็บอินสแตนซ์ของ Popup
@@ -111,29 +114,49 @@ func verify_and_build():
 
 ##Wave Functions
 func start_next_wave():
-	var wave_data = retrieve_wave_data()
+	var wave_dataA = retrieve_wave_dataA()
+	var wave_dataD = retrieve_wave_dataD()
 	yield(get_tree().create_timer(0.2),"timeout")
-	spawn_enemies(wave_data)
+	spawn_enemiesA(wave_dataA)
+	yield(get_tree().create_timer(0.4),"timeout")
+	spawn_enemiesD(wave_dataD)
 
 
-func retrieve_wave_data():
+func retrieve_wave_dataA():
 	var wave_data = []
 	var delay = 0.0
 
-	for i in range(enemies_in_wave):
+	for i in range(enemies_in_waveA):
 		var enemy_type = "BlueTank"      # กำหนดประเภทของศัตรู
-		delay += rand_range(0.4, 0.8)    # สุ่มเวลาสำหรับการสปอนศัตรู
+		delay += rand_range(0.4, 0.6)    # สุ่มเวลาสำหรับการสปอนศัตรู
 		wave_data.append([enemy_type, delay])
-	enemies_in_wave = wave_data.size()
+	enemies_in_waveA = wave_data.size()
+	return wave_data
+
+func retrieve_wave_dataD():
+	var wave_data = []
+	var delay = 0.0
+
+	for i in range(enemies_in_waveD):
+		var enemy_type = "BlueTank"      # กำหนดประเภทของศัตรู
+		delay += rand_range(0.4, 0.6)    # สุ่มเวลาสำหรับการสปอนศัตรู
+		wave_data.append([enemy_type, delay])
+	enemies_in_waveD = wave_data.size()
 	return wave_data
 
 
-func spawn_enemies(wave_data):
+func spawn_enemiesA(wave_data):
 	for i in wave_data:
 		var new_enemy = load("res://Scenes/Enemies/" + i[0] + ".tscn").instance()
 		map_node.get_node("TowerExclusion/Path2DAstar").add_child(new_enemy, true)
 		yield(get_tree().create_timer(i[1]),"timeout")
 		
+		
+func spawn_enemiesD(wave_data):
+	for i in wave_data:
+		var new_enemy = load("res://Scenes/Enemies/" + i[0] + ".tscn").instance()
+		map_node.get_node("TowerExclusion/Path2DDijk").add_child(new_enemy, true)
+		yield(get_tree().create_timer(i[1]),"timeout")
 
 # ฟังก์ชันที่เกี่ยวข้องกับการหยุดและเร่งความเร็วเกม
 func _paused():  

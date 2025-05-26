@@ -44,10 +44,12 @@ var enemywaveLV1 = 7
 var enemywaveLV2 = 3
 var enemywaveLV3 = 4
 
+var enemywaveALV1 = 5
+var enemywaveDLV1 = 5
 
 
 signal enemy_changed(new_enemy)
-var enemies_destroy = 1
+var enemies_destroy = 0
 
 func enemy_changed(amount) :
 	enemies_destroy += amount
