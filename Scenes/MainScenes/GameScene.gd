@@ -118,7 +118,6 @@ func start_next_wave():
 
 func retrieve_wave_data():
 	var wave_data = []
-	current_wave += 1
 	var delay = 0.0
 
 	for i in range(enemies_in_wave):
@@ -132,7 +131,7 @@ func retrieve_wave_data():
 func spawn_enemies(wave_data):
 	for i in wave_data:
 		var new_enemy = load("res://Scenes/Enemies/" + i[0] + ".tscn").instance()
-		map_node.get_node("Path").add_child(new_enemy, true)
+		map_node.get_node("TowerExclusion/Path2DAstar").add_child(new_enemy, true)
 		yield(get_tree().create_timer(i[1]),"timeout")
 		
 

@@ -40,7 +40,7 @@ func subtract_money(amount):
 
 
 
-var enemywaveLV1 = 0
+var enemywaveLV1 = 7
 var enemywaveLV2 = 3
 var enemywaveLV3 = 4
 

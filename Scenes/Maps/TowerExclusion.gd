@@ -1,5 +1,6 @@
 extends TileMap
 
+
 onready var walkable_tile_id = 0
 
 onready var path2d_astar = $Path2DAstar
@@ -29,6 +30,8 @@ var change_interval = 6.0
 var alternate_tile_id = 6
 var changing_cells = []
 
+var tank_destroyed_count = GameData.enemies_destroy
+
 var blocked_points = []  # สำหรับบล็อคเซลล์ของทั้งสองอัลกอริทึม
 
 var astar_start_time = 0
@@ -37,39 +40,54 @@ var astar_end_time = 0
 var dijkstra_start_time = 0
 var dijkstra_end_time = 0
 
+var block_round = 0
+var tanks_per_round = 3
+var has_triggered_block = false
+
+var cells_to_block_rounds = [
+	[Vector2(9,4)],      
+	[Vector2(8,2)]      
+]
+
 func _ready():
 	build_point_map()
 	start_astar_visual(Vector2(-1, 9), Vector2(21, 1)) 
 	start_dijkstra_step_search(Vector2(-1, 9), Vector2(21, 1))
-	setup_automatic_changes()
-	add_child(timer)
-	timer.wait_time = change_interval
-	timer.connect("timeout", self, "_on_tile_change_timeout")
-	timer.start()
 
-func setup_automatic_changes():
-	# กำหนดเซลล์ที่เราจะเปลี่ยนสลับ tile อัตโนมัติ
-	var fixed_cells = [Vector2(9, 4), Vector2(8, 2)]
-	for cell in fixed_cells:
-		if get_cellv(cell) == walkable_tile_id:
-			changing_cells.append(cell)
-		else:
-			print("Cell ", cell, " is not walkable (tile ID: ", get_cellv(cell), ")")
-	if changing_cells.empty():
-		print("No valid cells found for automatic changes")
+func _process(delta):
+	tank_destroyed_count = GameData.enemies_destroy
 
-func _on_tile_change_timeout():
-	if changing_cells.size() > 0:
-		var cell = changing_cells.pop_front()
-		set_cellv(cell, alternate_tile_id)
-		block_cell(cell)
+	if block_round >= cells_to_block_rounds.size():
+		set_process(false)    # ปิด process เลย
+		return
+
+	if tank_destroyed_count >= tanks_per_round * (block_round + 1) and not has_triggered_block:
+		has_triggered_block = true
+		print("Tank destroyed count reached round ", block_round + 1, ", blocking tiles.")
+
+		var cells_to_block = cells_to_block_rounds[block_round]
+		for cell in cells_to_block:
+			if get_cellv(cell) == walkable_tile_id:
+				set_cellv(cell, alternate_tile_id)
+				block_cell(cell)
+			else:
+				print("Cell ", cell, " already blocked or not walkable.")
+
+		block_round += 1
+		has_triggered_block = false   # Reset สำหรับรอบถัดไป
+
+		# รีเซ็ตและคำนวณเส้นทางใหม่
 		initialize_astar()
-		start_astar_visual(Vector2(-1, 9), Vector2(21, 1))  
+		start_astar_visual(Vector2(-1, 9), Vector2(21, 1))
 		initialize_dijkstra()
-		start_dijkstra_step_search(Vector2(-1, 9), Vector2(21, 1))  
-	else:
-		timer.stop()
-		print("All tiles have been changed - stopping automatic changes")
+		start_dijkstra_step_search(Vector2(-1, 9), Vector2(21, 1))
+
+		# เพิ่มรอบการบล็อคสำหรับครั้งถัดไป
+		block_round += 1
+
+	# รีเซ็ต trigger เมื่อตัวนับถังยังไม่ถึงจำนวนในรอบถัดไป
+	if tank_destroyed_count < tanks_per_round * (block_round + 1):
+		has_triggered_block = false
 
 func build_point_map():
 	point_ids.clear()
