@@ -1,5 +1,6 @@
 extends TileMap
 
+
 onready var walkable_tile_id = 0
 
 onready var path2d_astar = $Path2DAstar
@@ -11,11 +12,6 @@ onready var marker_dijk = $MarkerDijk
 
 signal astar_path_ready(path)
 signal dijkstra_path_ready(path)
-
-
-
-var astar_ready_flag = false
-var dijkstra_ready_flag = false
 
 var inf = 1000000
 
@@ -118,6 +114,7 @@ func compare_f_score(a, b):
 
 func initialize_astar():
 	build_point_map()
+	# ลบเซลล์ที่บล็อคออกจาก point_ids
 	for cell in blocked_points:
 		if point_ids.has(cell):
 			point_ids.erase(cell)
@@ -155,7 +152,7 @@ func _astar_step(open_set, came_from, start_cell, end_cell):
 			marker_astar.position = map_to_world(current) + cell_size / 2
 			marker_astar.visible = true
 			update()
-			yield(get_tree().create_timer(0.2), "timeout") # เพิ่ม delay 
+			yield(get_tree().create_timer(0.2), "timeout") # เพิ่ม delay
 
 		for offset in [Vector2(1,0), Vector2(-1,0), Vector2(0,1), Vector2(0,-1)]:
 			var neighbor = current + offset
@@ -260,6 +257,7 @@ func start_dijkstra_step_search(start_cell, end_cell):
 	came_from[start_cell] = null
 	cost_so_far[start_cell] = 0
 
+	
 	_dijkstra_step_search(start_cell, end_cell, came_from, cost_so_far, frontier)
 
 func _dijkstra_step_search(start_cell, end_cell, came_from, cost_so_far, frontier):

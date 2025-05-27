@@ -25,6 +25,9 @@ onready var x2_button = get_node("UI/HUD/HBoxContainer/X2")
 signal astar_path_ready
 signal dijkstra_path_ready
 
+var astar_ready_flag = false
+var dijkstra_ready_flag = false
+signal both_path_ready
 
 func _ready():
 	GameData.connect("money_changed", self, "_on_money_changed")
@@ -42,7 +45,7 @@ func _ready():
 	
 	
 	
-	map_node = get_node("Map1/TowerExclusion") 
+	map_node = get_node("Map1/TowerExclusion")
 	map_node.connect("astar_path_ready", self, "_on_astar_path_ready")
 	map_node.connect("dijkstra_path_ready", self, "_on_dijkstra_path_ready")
 	yield(get_tree().create_timer(0.1), "timeout")
@@ -122,11 +125,10 @@ func verify_and_build():
 func start_next_wave():
 	var wave_dataA = retrieve_wave_dataA()
 	var wave_dataD = retrieve_wave_dataD()
-	print("Waiting for astar_path_ready")
-	yield(self, "astar_path_ready")
-	print("astar_path_ready received, spawning enemies A")
+	print("GameScene: wait both_path_ready")
+	yield(self, "both_path_ready")
+	print("GameScene: both_path_ready received, spawn enemies")
 	spawn_enemiesA(wave_dataA)
-	yield(self, "dijkstra_path_ready")
 	spawn_enemiesD(wave_dataD)
 
 
@@ -280,9 +282,8 @@ func check_victory():
 		show_victory_popup()
 
 func _on_astar_path_ready(cell_path):
-	print("A* path ready, emitting astar_path_ready")
+	print("A* path ready")
 	GameData.path_locked = false
-	# ใช้ path ที่ถูกต้อง
 	var enemy_container = get_node("Map1/TowerExclusion/Path2DAstar")
 	if enemy_container:
 		for enemy in enemy_container.get_children():
@@ -290,7 +291,8 @@ func _on_astar_path_ready(cell_path):
 				enemy.refresh_path(cell_path)
 	else:
 		print("Path2DAstar not found!")
-	emit_signal("astar_path_ready")
+	astar_ready_flag = true
+	check_both_paths_ready()
 
 func _on_dijkstra_path_ready(cell_path):
 	GameData.path_locked = false
@@ -301,4 +303,12 @@ func _on_dijkstra_path_ready(cell_path):
 				enemy.refresh_path(cell_path)
 	else:
 		print("Path2DDijk not found!")
-	emit_signal("dijkstra_path_ready")
+	dijkstra_ready_flag = true
+	check_both_paths_ready()
+
+func check_both_paths_ready():
+	if astar_ready_flag and dijkstra_ready_flag:
+		emit_signal("both_path_ready")
+		astar_ready_flag = false
+		dijkstra_ready_flag = false
+		

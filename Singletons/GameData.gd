@@ -27,7 +27,7 @@ var tower_data = {
 
 signal money_changed(new_money)
 
-var money = 400
+var money = 200
 
 func add_money(amount):
 	money += amount

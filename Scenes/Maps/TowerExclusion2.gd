@@ -1,5 +1,6 @@
 extends TileMap
 
+
 onready var walkable_tile_id = 0
 
 onready var path2d_astar = $Path2DAstar
@@ -11,11 +12,6 @@ onready var marker_dijk = $MarkerDijk
 
 signal astar_path_ready(path)
 signal dijkstra_path_ready(path)
-
-
-
-var astar_ready_flag = false
-var dijkstra_ready_flag = false
 
 var inf = 1000000
 
@@ -73,7 +69,7 @@ func _process(delta):
 			else:
 				print("Cell ", cell, " already blocked or not walkable.")
 		# ใส่ path_locked = true 
-		GameData.path_locked = true    
+		GameData.path_locked = true  
 		# รีเซ็ตและคำนวณเส้นทางใหม่
 		initialize_astar()
 		start_astar_visual(Vector2(-1, 9), Vector2(21, 1))
@@ -90,8 +86,8 @@ func _process(delta):
 				block_cell(cell)
 			else:
 				print("Cell ", cell, " already blocked or not walkable.")
-		# <<<< ใส่ path_locked = true 
-		GameData.path_locked = true  
+		# <<<< ใส่ path_locked = true ตรงนี้
+		GameData.path_locked = true   
 		# รีเซ็ตและคำนวณเส้นทางใหม่
 		initialize_astar()
 		start_astar_visual(Vector2(-1, 9), Vector2(21, 1))
