@@ -22,6 +22,8 @@ onready var money_label = get_node("UI/HBoxContainer/Money")
 onready var play_pause = get_node("UI/HUD/HBoxContainer/play_paused")
 onready var x2_button = get_node("UI/HUD/HBoxContainer/X2")
 
+signal astar_path_ready
+signal dijkstra_path_ready
 
 
 func _ready():
@@ -40,13 +42,17 @@ func _ready():
 	
 	
 	
-	map_node = get_node("Map1") 
+	map_node = get_node("Map1/TowerExclusion") 
+	map_node.connect("astar_path_ready", self, "_on_astar_path_ready")
+	map_node.connect("dijkstra_path_ready", self, "_on_dijkstra_path_ready")
+	yield(get_tree().create_timer(0.1), "timeout")
+	start_next_wave()
 	
 	# เชื่อมต่อปุ่มสำหรับการสร้างตึก
 	for i in get_tree().get_nodes_in_group("build_buttons"):
 		i.connect("pressed", self, "initiate_build_mode", [i.get_name()])
 	
-	start_next_wave()
+
 
 
 func _process(delta):
@@ -73,11 +79,11 @@ func initiate_build_mode(tower_type):
 
 func update_tower_preview():
 	var mouse_position = get_global_mouse_position()
-	var current_tile = map_node.get_node("TowerExclusion").world_to_map(mouse_position)
-	var tile_position = map_node.get_node("TowerExclusion").map_to_world(current_tile)
+	var current_tile = map_node.world_to_map(mouse_position)
+	var tile_position = map_node.map_to_world(current_tile)
 	
 	# ตรวจสอบว่าตำแหน่งกริดที่เลือกเป็นที่ว่างหรือไม่
-	if map_node.get_node("TowerExclusion").get_cellv(current_tile) == -1:
+	if map_node.get_cellv(current_tile) == -1:
 		get_node("UI").update_tower_preview(tile_position, "ad54ff3c")
 		build_valid = true
 		build_location = tile_position
@@ -103,8 +109,8 @@ func verify_and_build():
 			new_tower.built = true
 			new_tower.type = build_type
 			new_tower.category = GameData.tower_data[build_type]["category"]
-			map_node.get_node("Turrets").add_child(new_tower, true)
-			map_node.get_node("TowerExclusion").set_cellv(build_tile, 5)
+			get_node("Map1/Turrets").add_child(new_tower, true)
+			map_node.set_cellv(build_tile, 5)
 			GameData.subtract_money(tower_cost)
 		else:
 			print("not enough money")
@@ -116,9 +122,11 @@ func verify_and_build():
 func start_next_wave():
 	var wave_dataA = retrieve_wave_dataA()
 	var wave_dataD = retrieve_wave_dataD()
-	yield(get_tree().create_timer(0.2),"timeout")
+	print("Waiting for astar_path_ready")
+	yield(self, "astar_path_ready")
+	print("astar_path_ready received, spawning enemies A")
 	spawn_enemiesA(wave_dataA)
-	yield(get_tree().create_timer(0.4),"timeout")
+	yield(self, "dijkstra_path_ready")
 	spawn_enemiesD(wave_dataD)
 
 
@@ -148,14 +156,14 @@ func retrieve_wave_dataD():
 func spawn_enemiesA(wave_data):
 	for i in wave_data:
 		var new_enemy = load("res://Scenes/Enemies/" + i[0] + ".tscn").instance()
-		map_node.get_node("TowerExclusion/Path2DAstar").add_child(new_enemy, true)
+		map_node.get_node("Path2DAstar").add_child(new_enemy, true)
 		yield(get_tree().create_timer(i[1]),"timeout")
 		
 		
 func spawn_enemiesD(wave_data):
 	for i in wave_data:
 		var new_enemy = load("res://Scenes/Enemies/" + i[0] + ".tscn").instance()
-		map_node.get_node("TowerExclusion/Path2DDijk").add_child(new_enemy, true)
+		map_node.get_node("Path2DDijk").add_child(new_enemy, true)
 		yield(get_tree().create_timer(i[1]),"timeout")
 
 # ฟังก์ชันที่เกี่ยวข้องกับการหยุดและเร่งความเร็วเกม
@@ -270,3 +278,27 @@ func check_victory():
 	if GameData.enemies_destroy == enemies_in_wave:
 		yield(get_tree().create_timer(0.2), "timeout")  
 		show_victory_popup()
+
+func _on_astar_path_ready(cell_path):
+	print("A* path ready, emitting astar_path_ready")
+	GameData.path_locked = false
+	# ใช้ path ที่ถูกต้อง
+	var enemy_container = get_node("Map1/TowerExclusion/Path2DAstar")
+	if enemy_container:
+		for enemy in enemy_container.get_children():
+			if enemy.has_method("refresh_path"):
+				enemy.refresh_path(cell_path)
+	else:
+		print("Path2DAstar not found!")
+	emit_signal("astar_path_ready")
+
+func _on_dijkstra_path_ready(cell_path):
+	GameData.path_locked = false
+	var enemy_container = get_node("Map1/TowerExclusion/Path2DDijk")
+	if enemy_container:
+		for enemy in enemy_container.get_children():
+			if enemy.has_method("refresh_path"):
+				enemy.refresh_path(cell_path)
+	else:
+		print("Path2DDijk not found!")
+	emit_signal("dijkstra_path_ready")

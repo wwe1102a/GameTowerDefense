@@ -44,6 +44,9 @@ func initialize_blockade():
 		range_collision.disabled = true
 
 func _physics_process(delta):
+	if GameData.path_locked:
+		return   # หยุดการทำงานทุกอย่าง
+
 	if category != "placement":  # Skip targeting for blockades
 		if enemy_array.size() != 0 and built:
 			select_enemy()

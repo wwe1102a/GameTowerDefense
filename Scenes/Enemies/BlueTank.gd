@@ -1,9 +1,10 @@
 extends PathFollow2D
 
-var speed = 130
+var speed = 90
 var maxhp = 50
 var hp = 50
 var is_dead = false
+var waiting_for_path = false
 
 onready var health_bar = $HealthBar
 onready var impact_area = $Impact
@@ -15,8 +16,13 @@ func _ready():
 	update_health_bar_color()
 
 func _physics_process(delta):
-	if not is_dead:
-		offset += speed * delta
+	if is_dead:
+		return
+	if GameData.path_locked:
+		waiting_for_path = true
+		return
+	waiting_for_path = false
+	offset += speed * delta
 
 func on_hit(damage):
 	if is_dead:
@@ -64,3 +70,9 @@ func on_destroy():
 	yield(get_tree().create_timer(0.2), "timeout")
 	explosion.queue_free()
 	queue_free()
+
+func refresh_path(new_path):
+	# ตัวอย่าง: รีเซ็ตตำแหน่งเดินตาม path ใหม่ ตั้งค่า offset หรือ index ใหม่
+	offset = 0
+	# ถ้ามีข้อมูล path มากกว่านี้ เช่น cell path, world path, ใส่เพิ่มที่นี่
+	waiting_for_path = false

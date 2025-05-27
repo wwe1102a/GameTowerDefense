@@ -27,7 +27,7 @@ var tower_data = {
 
 signal money_changed(new_money)
 
-var money = 200
+var money = 400
 
 func add_money(amount):
 	money += amount
@@ -55,3 +55,4 @@ func enemy_changed(amount) :
 	enemies_destroy += amount
 	emit_signal("enemy_changed", enemies_destroy)
 
+var path_locked = false

@@ -52,7 +52,7 @@ var cells_to_block_rounds = [
 
 func _ready():
 	build_point_map()
-	start_astar_visual(Vector2(-1, 9), Vector2(21, 1)) 
+	start_astar_visual(Vector2(-1, 9), Vector2(21, 1))
 	start_dijkstra_step_search(Vector2(-1, 9), Vector2(21, 1))
 
 func _process(delta):
@@ -68,6 +68,8 @@ func _process(delta):
 				block_cell(cell)
 			else:
 				print("Cell ", cell, " already blocked or not walkable.")
+		# ใส่ path_locked = true ตรงนี้
+		GameData.path_locked = true    #ตรงนี้!
 		# รีเซ็ตและคำนวณเส้นทางใหม่
 		initialize_astar()
 		start_astar_visual(Vector2(-1, 9), Vector2(21, 1))
@@ -84,8 +86,8 @@ func _process(delta):
 				block_cell(cell)
 			else:
 				print("Cell ", cell, " already blocked or not walkable.")
-
-
+		# <<<< ใส่ path_locked = true ตรงนี้
+		GameData.path_locked = true   # <--- ตรงนี้!
 		# รีเซ็ตและคำนวณเส้นทางใหม่
 		initialize_astar()
 		start_astar_visual(Vector2(-1, 9), Vector2(21, 1))
@@ -132,8 +134,6 @@ func start_astar_visual(start_cell, end_cell):
 	open_set.append(start_cell)
 	g_score[start_cell] = 0
 	f_score[start_cell] = heuristic(start_cell, end_cell)
-
-	# เรียกฟังก์ชันทำงานทันทีแบบไม่มี delay
 	_astar_step(open_set, came_from, start_cell, end_cell)
 
 func _astar_step(open_set, came_from, start_cell, end_cell):
@@ -148,7 +148,11 @@ func _astar_step(open_set, came_from, start_cell, end_cell):
 
 		if current != start_cell and current != end_cell:
 			astar_explored_points.append(current)
-			# ไม่ต้องอัพเดต marker ทีละจุด
+			# ขยับ marker ทีละจุด
+			marker_astar.position = map_to_world(current) + cell_size / 2
+			marker_astar.visible = true
+			update()
+			yield(get_tree().create_timer(0.3), "timeout") # เพิ่ม delay เห็นการเคลื่อนที่
 
 		for offset in [Vector2(1,0), Vector2(-1,0), Vector2(0,1), Vector2(0,-1)]:
 			var neighbor = current + offset
@@ -262,7 +266,10 @@ func _dijkstra_step_search(start_cell, end_cell, came_from, cost_so_far, frontie
 
 		if current != start_cell and current != end_cell:
 			dijkstra_explored_points.append(current)
-			# ไม่ต้อง update หรือ yield
+			marker_dijk.position = map_to_world(current) + cell_size / 2
+			marker_dijk.visible = true
+			update()
+			yield(get_tree().create_timer(0.3), "timeout") # เพิ่ม delay
 
 		if current == end_cell:
 			break
@@ -309,7 +316,7 @@ func draw_dijkstra_path(came_from, end_cell):
 	line2d_dijkstra.width = 1
 	line2d_dijkstra.default_color = Color.blue
 	dijkstra_end_time = OS.get_ticks_msec()
-	print("Dijkstra tiles explored: ", dijkstra_explored_points.size())
+	emit_signal("dijkstra_path_ready", path)
 
 # --- วาดวงกลมจุดที่สำรวจ ---
 
@@ -327,5 +334,12 @@ func _draw():
 func block_cell(cell):
 	if not blocked_points.has(cell):
 		blocked_points.append(cell)
+
+func animate_marker(marker, path):
+	for cell in path:
+		marker.position = map_to_world(cell) + cell_size / 2
+		marker.visible = true
+		update()
+		yield(get_tree().create_timer(0.1), "timeout")
 
 
